@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
 
 const projectSchema = new mongoose.Schema({
+    company: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Company",
+        required: true, 
+    },
     title: {
         type: String,
         required: true,
@@ -27,18 +32,9 @@ const projectSchema = new mongoose.Schema({
         default: Date.now,
     },
     status: {
-        type: Boolean,
-        required: true,
-    },
-    status: {
         type: String,
         required: true,
         enum: ["posted", "awarded", "completed"],
-    },
-    companyId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Company",
-        required: true,
     },
 }, { timestamps: true });
 

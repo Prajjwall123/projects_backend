@@ -1,4 +1,6 @@
 const User = require("../model/User");
+const { hashPassword, matchPassword } = require("../utils/hashPassword");
+
 
 const getAll = async (req, res) => {
     try {
@@ -24,11 +26,18 @@ const getUserById = async (req, res) => {
 };
 
 const create = async (req, res) => {
-    console.log("Request Body:", req.body);
     try {
         const { name, email, phone, password, role } = req.body;
 
-        const newUser = new User({ name, email, phone, password, role });
+        const hashedPassword = await hashPassword(password);
+
+        const newUser = new User({
+            name,
+            email,
+            phone,
+            password: hashedPassword,
+            role
+        });
 
         await newUser.save();
         console.log("User Saved:", newUser);
@@ -42,6 +51,7 @@ const create = async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 };
+
 
 const updateUser = async (req, res) => {
     try {

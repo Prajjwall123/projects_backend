@@ -1,5 +1,6 @@
 const User = require("../model/User");
 const { hashPassword, matchPassword } = require("../utils/hashPassword");
+const generateToken = require("../utils/generateToken");
 
 
 const getAll = async (req, res) => {
@@ -90,10 +91,27 @@ const deleteUser = async (req, res) => {
     }
 };
 
+// Login User
+const loginUser = async (req, res) => {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (user && (await matchPassword(password, user.password))) {
+        res.json({
+            _id: user._id,
+            email: user.email,
+            token: generateToken(user._id),
+        });
+    } else {
+        res.status(401).json({ message: "Invalid email or password" });
+    }
+};
+
+
 module.exports = {
     getAll,
     getUserById,
     create,
     updateUser,
     deleteUser,
+    loginUser,
 };

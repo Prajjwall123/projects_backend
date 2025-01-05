@@ -9,6 +9,8 @@ const app = express();
 
 // Database connection
 connectDb();
+//.env
+require("dotenv").config();
 
 
 app.use(express.json());

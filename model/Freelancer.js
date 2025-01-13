@@ -15,10 +15,14 @@ const freelancerSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    portfolio: {
+    profileImage: {
         type: String
     },
     availability: {
+        type: String,
+        required: true
+    },
+    portfolio: {
         type: String,
         required: true
     },
@@ -26,7 +30,7 @@ const freelancerSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    profileImagePath: {
+    profileImage: {
         type: String,
         default: null
     }

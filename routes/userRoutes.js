@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 
 const { getAll, create, getUserById, deleteUser, updateUser, loginUser } = require("../controller/userController");
+const UserValidation = require('../validation/userValidation');
 
 router.get('/', getAll);
-router.post('/', create);
+router.post('/', UserValidation, create);
 router.get("/:id", getUserById);
 router.put("/:id", updateUser);
 router.delete("/:id", deleteUser);

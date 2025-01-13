@@ -12,9 +12,14 @@ const getAllFreelancers = async (req, res) => {
 };
 
 const createFreelancer = async (req, res) => {
-    console.log("Request Body:", req.body);
     try {
-        const { userId, skills, experienceYears, portfolio, availability, profileImagePath } = req.body;
+        const { userId, skills, experienceYears, portfolio, availability } = req.body;
+
+        if (!req.file) {
+            return res.status(400).json({ message: "Please upload a profile image" });
+        }
+
+        const profileImage = req.file.originalname;
 
         const user = await User.findById(userId);
         if (!user) {
@@ -32,7 +37,7 @@ const createFreelancer = async (req, res) => {
             experienceYears,
             portfolio,
             availability,
-            profileImagePath,
+            profileImage,
         });
 
         await freelancer.save();
@@ -44,6 +49,7 @@ const createFreelancer = async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 };
+
 
 const getFreelancerById = async (req, res) => {
     const { id } = req.params;
@@ -61,7 +67,7 @@ const getFreelancerById = async (req, res) => {
 
 const updateFreelancer = async (req, res) => {
     const { id } = req.params;
-    const { skills, experienceYears, portfolio, availability, profileImagePath } = req.body;
+    const { skills, experienceYears, profileImage, availability, profileImagePath } = req.body;
     try {
         const freelancer = await Freelancer.findById(id);
         if (!freelancer) {
@@ -70,7 +76,7 @@ const updateFreelancer = async (req, res) => {
 
         freelancer.skills = skills || freelancer.skills;
         freelancer.experienceYears = experienceYears || freelancer.experienceYears;
-        freelancer.portfolio = portfolio || freelancer.portfolio;
+        freelancer.profileImage = profileImage || freelancer.profileImage;
         freelancer.availability = availability || freelancer.availability;
         freelancer.profileImagePath = profileImagePath || freelancer.profileImagePath;
 

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { authenticateToken } = require("../security/Auth")
+const { authenticateToken, authorizeRole } = require("../security/Auth")
 
 const { getAllCompanies, createCompany, getCompanyById, updateCompany, deleteCompany } = require("../controller/companyController");
 
@@ -19,7 +19,7 @@ const upload = multer({ storage })
 router.get("/", getAllCompanies);
 router.post("/", upload.single('file'), createCompany);
 router.get("/:id", getCompanyById);
-router.put("/:id", authenticateToken, updateCompany);
-router.delete("/:id", authenticateToken, deleteCompany);
+router.put("/:id", authenticateToken, authorizeRole("company"), updateCompany);
+router.delete("/:id", authenticateToken, authorizeRole("company"), deleteCompany);
 
 module.exports = router;

@@ -1,6 +1,6 @@
 const express = require("express");
 const connectDb = require("./config/db");
-const userRoutes = require("./routes/UserRoutes");
+const userRoutes = require("./routes/userRoutes");
 const freelancerRoutes = require("./routes/freelancerRoutes");
 const companyRoutes = require('../backend/routes/companyRoutes');
 const projectsRoutes = require('../backend/routes/projectRoutes');

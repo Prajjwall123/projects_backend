@@ -1,5 +1,5 @@
 const express = require("express");
-const { authenticateToken } = require("../security/Auth")
+const { authenticateToken, authorizeRole } = require("../security/Auth")
 
 const router = express.Router();
 
@@ -19,7 +19,7 @@ const upload = multer({ storage })
 router.get("/", getAllFreelancers);
 router.post("/", upload.single('file'), createFreelancer);
 router.get("/:id", getFreelancerById);
-router.put("/:id", authenticateToken, updateFreelancer);
-router.delete("/:id", authenticateToken, deleteFreelancer);
+router.put("/:id", authenticateToken, authorizeRole("freelancer"), updateFreelancer);
+router.delete("/:id", authenticateToken, authorizeRole("freelancer"), deleteFreelancer);
 
 module.exports = router;

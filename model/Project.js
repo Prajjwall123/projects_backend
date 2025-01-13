@@ -4,27 +4,23 @@ const projectSchema = new mongoose.Schema({
     company: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Company",
-        required: true, 
+        required: true,
     },
     title: {
         type: String,
         required: true,
-        maxlength: 255,
     },
     category: {
         type: String,
         required: true,
-        maxlength: 255,
     },
     requirements: {
         type: String,
         required: true,
-        maxlength: 255,
     },
     description: {
         type: String,
         required: true,
-        maxlength: 255,
     },
     postedDate: {
         type: Date,
@@ -38,4 +34,6 @@ const projectSchema = new mongoose.Schema({
     },
 }, { timestamps: true });
 
-module.exports = mongoose.model("Project", projectSchema);
+const Project = mongoose.model("Project", projectSchema);;
+
+module.exports = Project;

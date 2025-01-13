@@ -2,7 +2,6 @@ const User = require("../model/User");
 const { hashPassword, matchPassword } = require("../utils/hashPassword");
 const generateToken = require("../utils/generateToken");
 
-
 const getAll = async (req, res) => {
     try {
         const users = await User.find();

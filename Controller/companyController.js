@@ -28,7 +28,13 @@ const getCompanyById = async (req, res) => {
 
 const createCompany = async (req, res) => {
     try {
-        const { user, name, companyBio, employees, logo, projectsAwarded, projectsPosted, projectsCompleted } = req.body;
+        const { user, name, companyBio, employees, projectsAwarded, projectsPosted, projectsCompleted } = req.body;
+
+        if (!req.file) {
+            return res.status(400).json({ message: "Please upload a logo file" });
+        }
+
+        const logo = req.file.originalname;
 
         const existingCompany = await Company.findOne({ user });
         if (existingCompany) {
@@ -55,6 +61,7 @@ const createCompany = async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 };
+
 
 const updateCompany = async (req, res) => {
     const { id } = req.params;

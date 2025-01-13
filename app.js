@@ -1,6 +1,6 @@
 const express = require("express");
 const connectDb = require("./config/db");
-const UserRoute = require("./routes/userRoutes");
+const userRoutes = require("./routes/UserRoutes");
 const freelancerRoutes = require("./routes/freelancerRoutes");
 const companyRoutes = require('../backend/routes/companyRoutes');
 const projectsRoutes = require('../backend/routes/projectRoutes');
@@ -14,7 +14,7 @@ require("dotenv").config();
 
 
 app.use(express.json());
-app.use("/api/users", UserRoute);
+app.use("/api/users", userRoutes);
 app.use("/api/freelancers", freelancerRoutes);
 app.use("/api/companys", companyRoutes);
 app.use("/api/projects", projectsRoutes);

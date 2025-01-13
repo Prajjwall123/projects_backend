@@ -1,15 +1,13 @@
 const express = require("express");
+
 const router = express.Router();
-const freelancerController = require("../controller/freelancerController");
 
-router.get("/", freelancerController.getAllFreelancers);
+const { getAllFreelancers, createFreelancer, getFreelancerById, updateFreelancer, deleteFreelancer } = require("../controller/freelancerController");
 
-router.post("/", freelancerController.createFreelancer);
-
-router.get("/:id", freelancerController.getFreelancerById);
-
-router.put("/:id", freelancerController.updateFreelancer);
-
-router.delete("/:id", freelancerController.deleteFreelancer);
+router.get("/", getAllFreelancers);
+router.post("/", createFreelancer);
+router.get("/:id", getFreelancerById);
+router.put("/:id", updateFreelancer);
+router.delete("/:id", deleteFreelancer);
 
 module.exports = router;

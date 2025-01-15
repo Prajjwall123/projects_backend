@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const SECRET_KEY = '7c047a7d3dec647e73ef908c29f38e591ab2c0877b6933eb17f2e3fb0fe8af34';
 const User = require('../model/User');
+const nodemailer = require('nodemailer');
 
 const register = async (req, res) => {
     const { name, email, password, phone, role } = req.body;
@@ -22,7 +23,29 @@ const register = async (req, res) => {
         });
 
         await user.save();
-        res.status(201).send({ message: 'User registered successfully', user });
+
+        const transporter = nodemailer.createTransport(
+            {
+                host: "smtp.gmail.com",
+                port: 587,
+                secure: false,
+                protocol: "smtp",
+                auth: {
+                    user: "projects.yeti@gmail.com",
+                    pass: "iwcy omdk myvz ireq"
+                }
+            }
+        )
+        const info = await transporter.sendMail({
+            from: "projects.yeti@gmail.com",
+            to: user.email,
+            subject: "Customer Registration",
+            html:
+                `<h1>Your Registration has been completed<h1/>`
+
+        })
+
+        res.status(201).json({user, info})
     } catch (error) {
         console.error('Error registering user:', error);
         res.status(500).send('Internal server error');

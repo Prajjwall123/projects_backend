@@ -1,6 +1,4 @@
 const User = require("../model/User");
-const { hashPassword, matchPassword } = require("../utils/hashPassword");
-const generateToken = require("../utils/generateToken");
 
 const getAll = async (req, res) => {
     try {
@@ -24,34 +22,6 @@ const getUserById = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-
-const create = async (req, res) => {
-    try {
-        const { name, email, phone, password, role } = req.body;
-
-        const hashedPassword = await hashPassword(password);
-
-        const newUser = new User({
-            name,
-            email,
-            phone,
-            password: hashedPassword,
-            role
-        });
-
-        await newUser.save();
-        console.log("User Saved:", newUser);
-
-        res.status(201).json(newUser);
-    } catch (error) {
-        console.error("Error saving user:", error);
-        if (error.code === 11000) {
-            return res.status(400).json({ message: "A user with your email or phone number already exists" });
-        }
-        res.status(400).json({ message: error.message });
-    }
-};
-
 
 const updateUser = async (req, res) => {
     try {
@@ -90,26 +60,10 @@ const deleteUser = async (req, res) => {
     }
 };
 
-const loginUser = async (req, res) => {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (user && (await matchPassword(password, user.password))) {
-        res.json({
-            _id: user._id,
-            email: user.email,
-            token: generateToken(user._id),
-        });
-    } else {
-        res.status(401).json({ message: "Invalid email or password" });
-    }
-};
-
 
 module.exports = {
     getAll,
     getUserById,
-    create,
     updateUser,
     deleteUser,
-    loginUser,
 };

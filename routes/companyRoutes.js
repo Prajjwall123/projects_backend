@@ -17,7 +17,7 @@ const upload = multer({ storage })
 
 
 router.get("/", getAllCompanies);
-router.post("/", upload.single('file'), createCompany);
+router.post("/", authenticateToken, authorizeRole("company"), upload.single('file'), createCompany);
 router.get("/:id", getCompanyById);
 router.put("/:id", authenticateToken, authorizeRole("company"), updateCompany);
 router.delete("/:id", authenticateToken, authorizeRole("company"), deleteCompany);

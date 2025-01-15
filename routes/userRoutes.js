@@ -5,10 +5,8 @@ const { getAll, create, getUserById, deleteUser, updateUser, loginUser } = requi
 const UserValidation = require('../validation/userValidation');
 
 router.get('/', getAll);
-router.post('/', UserValidation, create);
 router.get("/:id", getUserById);
 router.put("/:id", updateUser);
 router.delete("/:id", deleteUser);
-router.post('/login', loginUser);
 
 module.exports = router;

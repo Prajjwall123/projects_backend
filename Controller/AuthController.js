@@ -2,12 +2,11 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const SECRET_KEY = process.env.SECRET_KEY;
 const User = require('../model/User');
+const OTP = require('../model/OTP');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 require('dotenv').config();
 
-
-let otpStorage = {};
 
 const register = async (req, res) => {
     const { name, email, password, phone, role } = req.body;
@@ -20,7 +19,9 @@ const register = async (req, res) => {
 
         const otp = crypto.randomInt(100000, 999999);
 
-        otpStorage[email] = { otp, name, email, password, phone, role };
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        await OTP.create({ email, otp, name, password: hashedPassword, phone, role });
 
         const transporter = nodemailer.createTransport({
             host: "smtp.gmail.com",
@@ -77,10 +78,8 @@ const register = async (req, res) => {
         </div>
     </div>
 </div>
-
             `
         });
-
 
         res.status(200).json({ message: "OTP sent to your email", info });
     } catch (error) {
@@ -93,24 +92,24 @@ const verifyOtp = async (req, res) => {
     const { email, otp } = req.body;
 
     try {
-        const storedData = otpStorage[email];
+        const storedData = await OTP.findOne({ email }).sort({ createdAt: -1 });
+
         if (!storedData) {
             return res.status(400).send('Invalid or expired OTP');
         }
 
-        if (storedData.otp.toString() === otp) {
-            const hashedPassword = await bcrypt.hash(storedData.password, 10);
+        if (storedData.otp === otp) {
             const user = new User({
                 name: storedData.name,
                 email: storedData.email,
-                password: hashedPassword,
+                password: storedData.password,
                 phone: storedData.phone,
-                role: storedData.role
+                role: storedData.role,
             });
 
             await user.save();
 
-            delete otpStorage[email];
+            await OTP.deleteOne({ _id: storedData._id });
 
             res.status(201).json({ message: 'Registration successful', user });
         } else {

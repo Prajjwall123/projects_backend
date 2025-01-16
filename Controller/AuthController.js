@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const SECRET_KEY = '7c047a7d3dec647e73ef908c29f38e591ab2c0877b6933eb17f2e3fb0fe8af34';
+const SECRET_KEY = process.env.SECRET_KEY;
 const User = require('../model/User');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');

@@ -1,13 +1,25 @@
 const Project = require("../model/Project");
 
+const fs = require("fs");
+const path = require("path");
+
 // Get all projects
 const getAllProjects = async (req, res) => {
     try {
         const projects = await Project.find()
-            .populate("company", "name companyBio")
+            .populate("company", "name logo")
             .exec();
 
-        res.status(200).json(projects);
+        const updatedProjects = projects.map(project => {
+            const logoPath = path.join(__dirname, "..", "images", project.company.logo);
+            const logoBuffer = fs.readFileSync(logoPath);
+            const logoBase64 = logoBuffer.toString("base64");
+
+            project.company.logo = `data:image/png;base64,${logoBase64}`;
+            return project;
+        });
+
+        res.status(200).json(updatedProjects);
     } catch (error) {
         console.error("Error fetching projects:", error);
         res.status(500).json({ message: error.message });
@@ -15,14 +27,19 @@ const getAllProjects = async (req, res) => {
 };
 
 
-// Get a single project by ID
 const getProjectById = async (req, res) => {
     const { id } = req.params;
     try {
-        const project = await Project.findById(id).populate("company", "name companyBio");
+        const project = await Project.findById(id).populate("company", "name logo");
         if (!project) {
             return res.status(404).json({ message: "Project not found" });
         }
+
+        const logoPath = path.join(__dirname, "..", "images", project.company.logo);
+        const logoBuffer = fs.readFileSync(logoPath);
+        const logoBase64 = logoBuffer.toString("base64");
+
+        project.company.logo = `data:image/png;base64,${logoBase64}`;
         res.status(200).json(project);
     } catch (error) {
         console.error("Error fetching project:", error);
@@ -30,9 +47,11 @@ const getProjectById = async (req, res) => {
     }
 };
 
+
+
 const createProject = async (req, res) => {
     try {
-        const { title, category, requirements, description, status, company } = req.body;
+        const { title, category, requirements, description, status, company, duration } = req.body;
 
         if (!company) {
             return res.status(400).json({ message: "Company ID is required" });
@@ -45,6 +64,7 @@ const createProject = async (req, res) => {
             description,
             status,
             company,
+            duration,
         });
 
         await project.save();

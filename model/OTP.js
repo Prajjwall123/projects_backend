@@ -19,6 +19,7 @@ const otpSchema = new mongoose.Schema({
     availability: { type: String },
     portfolio: { type: String },
     profileImage: { type: String },
+    freelancerName: { type: String, maxlength: 255 },
 });
 
 module.exports = mongoose.model('OTP', otpSchema);

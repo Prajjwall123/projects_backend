@@ -12,7 +12,7 @@ const Company = require('../model/Company');
 require('dotenv').config();
 
 const register = async (req, res) => {
-    const { email, password, role, companyName, companyBio, employees, skills, experienceYears, availability, portfolio } = req.body;
+    const { email, password, role, companyName, companyBio, employees, skills, experienceYears, availability, portfolio, freelancerName } = req.body;
     const { logo, profileImage } = req.files;
 
     console.log('Uploaded files:', req.files);
@@ -45,6 +45,7 @@ const register = async (req, res) => {
             otpData.experienceYears = experienceYears || null;
             otpData.availability = availability || null;
             otpData.portfolio = portfolio || null;
+            otpData.freelancerName = freelancerName || null;
 
             if (req.files && req.files.profileImage) {
                 otpData.profileImage = req.files.profileImage[0] ? req.files.profileImage[0].path : null;
@@ -58,6 +59,8 @@ const register = async (req, res) => {
 
         await OTP.create(otpData);
 
+        const name = role === "company" ? otpData.companyName : otpData.freelancerName;
+
         const transporter = nodemailer.createTransport({
             service: "gmail",
             auth: {
@@ -70,8 +73,50 @@ const register = async (req, res) => {
             from: process.env.EMAIL_ADDRESS,
             to: email,
             subject: "Your OTP for Registration",
-            text: `Your OTP is ${otp}. It is valid for 10 minutes.`
+            html: `
+            <div style="font-family: Arial, Helvetica, sans-serif; padding: 20px; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; background-color: #fff;">
+                    <!-- Header with Logo -->
+                    <div style="background-color: #00008b; padding: 20px; text-align: center; color: #fff;">
+                        <img src="https://i.postimg.cc/gj8GFZHf/logo.png" alt="Company Logo" style="max-width: 150px; margin-bottom: 15px;" />
+                        <h1 style="margin: 0; font-size: 24px;">Your Registration OTP</h1>
+                    </div>
+                    <!-- Body -->
+                    <div style="padding: 20px;">
+                        <p style="font-size: 16px; line-height: 1.5; color: #333;">
+                            Dear <strong>${name}</strong>,
+                        </p>
+                        <p style="font-size: 16px; line-height: 1.5; color: #333;">
+                            Thank you for registering with us. Please use the one-time password (OTP) below to complete your registration process:
+                        </p>
+                        <div style="margin: 30px 0; text-align: center;">
+                            <span style="font-size: 24px; font-weight: bold; color: #00008b; padding: 12px 25px; border: 2px solid #00008b; border-radius: 5px; display: inline-block;">
+                                ${otp}
+                            </span>
+                        </div>
+                        <p style="font-size: 16px; line-height: 1.5; color: #333;">
+                            This OTP is valid for the next 10 minutes. If you did not request this, please ignore this email.
+                        </p>
+                        <p style="font-size: 16px; line-height: 1.5; color: #333;">
+                            Regards,<br />
+                            <strong>ProjectsYeti</strong>
+                        </p>
+                    </div>
+                    <!-- Footer -->
+                    <div style="background-color: #00008b; padding: 15px; text-align: center; color: #fff;">
+                        <p style="margin: 0; font-size: 14px; color: #f5f5dc;">
+                            If you have any questions, contact us at 
+                            <a href="mailto:${process.env.EMAIL_ADDRESS}" style="color: #f5f5dc; text-decoration: none;">${process.env.EMAIL_ADDRESS}</a>
+                        </p>
+                        <p style="margin: 5px 0 0 0; font-size: 14px; color: #f5f5dc;">
+                            © ${new Date().getFullYear()} ProjectsYeti. All Rights Reserved.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            `
         });
+
 
         res.status(200).json({ message: "OTP sent to your email" });
 
@@ -123,7 +168,8 @@ const verifyOtp = async (req, res) => {
                 availability: storedData.availability,
                 portfolio: storedData.portfolio,
                 profileImage: storedData.profileImage,
-                projectsCompleted: 0
+                projectsCompleted: 0,
+                freelancerName: storedData.freelancerName,
             });
             await freelancer.save();
         }

@@ -4,6 +4,7 @@ const freelancerSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, unique: true },
     skills: { type: [String] },
     experienceYears: { type: Number },
+    freelancerName: { type: String, maxlength: 255 },
     availability: { type: String },
     portfolio: { type: String },
     profileImage: { type: String },

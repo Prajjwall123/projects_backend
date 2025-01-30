@@ -1,92 +1,86 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const SECRET_KEY = process.env.SECRET_KEY;
 const User = require('../model/User');
 const OTP = require('../model/OTP');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+const Freelancer = require('../model/Freelancer');
+const Company = require('../model/Company');
+
 require('dotenv').config();
 
-
 const register = async (req, res) => {
-    const { name, email, password, phone, role } = req.body;
+    const { email, password, role, companyName, companyBio, employees, skills, experienceYears, availability, portfolio } = req.body;
+    const { logo, profileImage } = req.files;
+
+    console.log('Uploaded files:', req.files);
 
     try {
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(400).send('User already exists');
+            return res.status(400).json({ message: "User already exists" });
         }
 
         const otp = crypto.randomInt(100000, 999999);
-
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        await OTP.create({ email, otp, name, password: hashedPassword, phone, role });
+        const otpData = {
+            email,
+            otp,
+            password: hashedPassword,
+            role,
+            createdAt: Date.now(),
+            attempts: 0
+        };
+
+        if (role === "company") {
+            otpData.companyName = companyName || null;
+            otpData.companyBio = companyBio || null;
+            otpData.employees = employees || null;
+            otpData.logo = logo[0] ? logo[0].path : null;
+        } else if (role === "freelancer") {
+            otpData.skills = skills || [];
+            otpData.experienceYears = experienceYears || null;
+            otpData.availability = availability || null;
+            otpData.portfolio = portfolio || null;
+
+            if (req.files && req.files.profileImage) {
+                otpData.profileImage = req.files.profileImage[0] ? req.files.profileImage[0].path : null;
+            } else {
+                console.log('No profile image uploaded');
+                otpData.profileImage = null;
+            }
+        } else {
+            return res.status(400).json({ message: "Invalid role" });
+        }
+
+        await OTP.create(otpData);
 
         const transporter = nodemailer.createTransport({
-            host: "smtp.gmail.com",
-            port: 587,
-            secure: false,
+            service: "gmail",
             auth: {
                 user: process.env.EMAIL_ADDRESS,
                 pass: process.env.EMAIL_PASSWORD
             }
         });
 
-        const info = await transporter.sendMail({
+        await transporter.sendMail({
             from: process.env.EMAIL_ADDRESS,
             to: email,
             subject: "Your OTP for Registration",
-            html: `
-            <div style="font-family: Arial, sans-serif; padding: 20px; color: #000;">
-    <div style="max-width: 600px; margin: 0 auto; border: 1px solid #000; border-radius: 10px; overflow: hidden;">
-        <!-- Header with Logo -->
-        <div style="background-color: #00008b; padding: 15px; text-align: center; color: #fff;">
-            <img src="https://i.postimg.cc/gj8GFZHf/logo.png" alt="Company Logo" style="max-width: 150px; margin-bottom: 10px;" />
-            <h1 style="margin: 0;">Your Registration OTP</h1>
-        </div>
-        <!-- Body -->
-        <div style="padding: 20px;">
-            <p style="font-size: 16px; line-height: 1.5; color: #000;">
-                Dear <strong>${name}</strong>,
-            </p>
-            <p style="font-size: 16px; line-height: 1.5; color: #000;">
-                Thank you for registering with us. Please use the one-time password (OTP) below to complete your registration process:
-            </p>
-            <div style="margin: 20px 0; text-align: center;">
-                <span style="font-size: 24px; font-weight: bold; color: #00008b; padding: 10px 20px; border: 2px solid #00008b; border-radius: 5px; display: inline-block;">
-                    ${otp}
-                </span>
-            </div>
-            <p style="font-size: 16px; line-height: 1.5; color: #000;">
-                This OTP is valid for the next 10 minutes. If you did not request this, please ignore this email.
-            </p>
-            <p style="font-size: 16px; line-height: 1.5; color: #000;">
-                Regards,<br/>
-                <strong>ProjectsYeti</strong>
-            </p>
-        </div>
-        <!-- Footer -->
-        <div style="background-color: #00008b; padding: 15px; text-align: center; color: #fff;">
-            <p style="margin: 0; font-size: 14px; color: #f5f5dc;">
-                If you have any questions, contact us at 
-                <a href="mailto:${process.env.EMAIL_ADDRESS}" style="color: #f5f5dc;">${process.env.EMAIL_ADDRESS}</a>
-            </p>
-            <p style="margin: 0; font-size: 14px; color: #f5f5dc;">
-                © ${new Date().getFullYear()} ProjectsYeti. All Rights Reserved.
-            </p>
-        </div>
-    </div>
-</div>
-            `
+            text: `Your OTP is ${otp}. It is valid for 10 minutes.`
         });
 
-        res.status(200).json({ message: "OTP sent to your email", info });
+        res.status(200).json({ message: "OTP sent to your email" });
+
     } catch (error) {
-        console.error('Error registering user:', error);
-        res.status(500).send('Internal server error');
+        console.error("Error registering user:", error);
+        res.status(500).json({ message: "Internal server error" });
     }
 };
+
 
 const verifyOtp = async (req, res) => {
     const { email, otp } = req.body;
@@ -95,32 +89,54 @@ const verifyOtp = async (req, res) => {
         const storedData = await OTP.findOne({ email }).sort({ createdAt: -1 });
 
         if (!storedData) {
-            return res.status(400).send('Invalid or expired OTP');
+            return res.status(400).json({ message: "Invalid or expired OTP" });
         }
 
-        if (storedData.otp === otp) {
-            const user = new User({
-                name: storedData.name,
-                email: storedData.email,
-                password: storedData.password,
-                phone: storedData.phone,
-                role: storedData.role,
+        if (storedData.otp !== otp) {
+            return res.status(400).json({ message: "Invalid OTP" });
+        }
+
+        const user = new User({
+            email: storedData.email,
+            password: storedData.password,
+            role: storedData.role
+        });
+        await user.save();
+
+        if (storedData.role === "company") {
+            const company = new Company({
+                user: user._id,
+                companyName: storedData.companyName,
+                companyBio: storedData.companyBio,
+                employees: storedData.employees,
+                logo: storedData.logo,
+                projectsPosted: storedData.projectsPosted,
+                projectsAwarded: storedData.projectsAwarded,
+                projectsCompleted: storedData.projectsCompleted
             });
-
-            await user.save();
-
-            await OTP.deleteOne({ _id: storedData._id });
-
-            res.status(201).json({ message: 'Registration successful', user });
-        } else {
-            res.status(400).send('Invalid OTP');
+            await company.save();
+        } else if (storedData.role === "freelancer") {
+            const freelancer = new Freelancer({
+                user: user._id,
+                skills: storedData.skills,
+                experienceYears: storedData.experienceYears,
+                availability: storedData.availability,
+                portfolio: storedData.portfolio,
+                profileImage: storedData.profileImage,
+                projectsCompleted: 0
+            });
+            await freelancer.save();
         }
+
+        await OTP.deleteOne({ _id: storedData._id });
+
+        res.status(201).json({ message: "Registration successful", user });
+
     } catch (error) {
-        console.error('Error verifying OTP:', error);
-        res.status(500).send('Internal server error');
+        console.error("Error verifying OTP:", error);
+        res.status(500).json({ message: "Internal server error" });
     }
 };
-
 
 const login = async (req, res) => {
     const { email, password } = req.body;
@@ -152,6 +168,6 @@ const login = async (req, res) => {
 module.exports = {
     register,
     login,
-    verifyOtp
+    verifyOtp,
 };
 

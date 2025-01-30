@@ -26,43 +26,6 @@ const getCompanyById = async (req, res) => {
     }
 };
 
-const createCompany = async (req, res) => {
-    try {
-        const { user, name, companyBio, employees, projectsAwarded, projectsPosted, projectsCompleted } = req.body;
-
-        if (!req.file) {
-            return res.status(400).json({ message: "Please upload a logo file" });
-        }
-
-        const logo = req.file.originalname;
-
-        const existingCompany = await Company.findOne({ user });
-        if (existingCompany) {
-            return res.status(400).json({ message: "A company profile already exists for this user" });
-        }
-
-        const company = new Company({
-            user,
-            name,
-            companyBio,
-            employees,
-            logo,
-            projectsAwarded,
-            projectsPosted,
-            projectsCompleted,
-        });
-
-        await company.save();
-        console.log("Company Created:", company);
-
-        res.status(201).json(company);
-    } catch (error) {
-        console.error("Error creating company:", error);
-        res.status(400).json({ message: error.message });
-    }
-};
-
-
 const updateCompany = async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
@@ -106,7 +69,6 @@ const deleteCompany = async (req, res) => {
 module.exports = {
     getAllCompanies,
     getCompanyById,
-    createCompany,
     updateCompany,
     deleteCompany,
 };

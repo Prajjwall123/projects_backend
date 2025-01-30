@@ -17,7 +17,6 @@ const storage = multer.diskStorage({
 const upload = multer({ storage })
 
 router.get("/", getAllFreelancers);
-router.post("/", createFreelancer);
 router.get("/:id", getFreelancerById);
 router.put("/:id", authenticateToken, authorizeRole("freelancer"), updateFreelancer);
 router.delete("/:id", authenticateToken, authorizeRole("freelancer"), deleteFreelancer);

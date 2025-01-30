@@ -6,6 +6,7 @@ const freelancerRoutes = require("./routes/freelancerRoutes");
 const companyRoutes = require('../backend/routes/companyRoutes');
 const projectsRoutes = require('../backend/routes/projectRoutes');
 const AuthRouter = require('../backend/routes/AuthRoute');
+const SkillsRouter = require('../backend/routes/skillsRoutes');
 
 const app = express();
 
@@ -28,6 +29,8 @@ app.use("/api/freelancers", freelancerRoutes);
 app.use("/api/companys", companyRoutes);
 app.use("/api/projects", projectsRoutes);
 app.use("/api/auth", AuthRouter);
+app.use("/api/skills", SkillsRouter);
+
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

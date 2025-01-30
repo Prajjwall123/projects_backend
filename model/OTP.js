@@ -14,7 +14,7 @@ const otpSchema = new mongoose.Schema({
     projectsPosted: { type: Number, default: 0 },
     projectsAwarded: { type: Number, default: 0 },
     projectsCompleted: { type: Number, default: 0 },
-    skills: { type: [String] },
+    skills: [{ type: mongoose.Schema.Types.ObjectId, ref: "Skill" }],
     experienceYears: { type: Number },
     availability: { type: String },
     portfolio: { type: String },

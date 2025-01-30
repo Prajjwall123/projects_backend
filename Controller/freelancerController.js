@@ -11,46 +11,6 @@ const getAllFreelancers = async (req, res) => {
     }
 };
 
-const createFreelancer = async (req, res) => {
-    try {
-        const { userId, skills, experienceYears, portfolio, availability } = req.body;
-
-        if (!req.file) {
-            return res.status(400).json({ message: "Please upload a profile image" });
-        }
-
-        const profileImage = req.file.originalname;
-
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        const existingFreelancer = await Freelancer.findOne({ user: userId });
-        if (existingFreelancer) {
-            return res.status(400).json({ message: "Freelancer profile already exists for this user" });
-        }
-
-        const freelancer = new Freelancer({
-            user: userId,
-            skills,
-            experienceYears,
-            portfolio,
-            availability,
-            profileImage,
-        });
-
-        await freelancer.save();
-        console.log("Freelancer Created:", freelancer);
-
-        res.status(201).json(freelancer);
-    } catch (error) {
-        console.error("Error creating freelancer:", error);
-        res.status(400).json({ message: error.message });
-    }
-};
-
-
 const getFreelancerById = async (req, res) => {
     const { id } = req.params;
     try {
@@ -110,7 +70,6 @@ const deleteFreelancer = async (req, res) => {
 
 module.exports = {
     getAllFreelancers,
-    createFreelancer,
     getFreelancerById,
     updateFreelancer,
     deleteFreelancer

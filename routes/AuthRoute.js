@@ -1,5 +1,6 @@
 const express = require('express');
 const multer = require('multer');
+const path = require('path');
 
 const router = express.Router();
 
@@ -16,11 +17,18 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-router.post('/register', upload.fields([
-    { name: 'logo', maxCount: 1 },
-    { name: 'profileImage', maxCount: 1 }
-]), register);
+router.post('/upload', upload.single('image'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'No image uploaded' });
+    }
 
+    const imageName = req.file.filename;
+    const imageUrl = `images/${imageName}`;
+
+    return res.status(200).json({ imageUrl });
+});
+
+router.post('/register', register);
 router.post('/login', login);
 router.post('/verify-otp', verifyOtp);
 

@@ -12,10 +12,9 @@ const Company = require('../model/Company');
 require('dotenv').config();
 
 const register = async (req, res) => {
-    const { email, password, role, companyName, companyBio, employees, skills, experienceYears, availability, portfolio, freelancerName } = req.body;
-    const { logo, profileImage } = req.files;
+    const { email, password, role, companyName, companyBio, employees, skills, experienceYears, availability, portfolio, freelancerName, profileImage } = req.body;
 
-    console.log('Uploaded files:', req.files);
+    console.log('Registration data:', req.body);
 
     try {
         const existingUser = await User.findOne({ email });
@@ -35,11 +34,12 @@ const register = async (req, res) => {
             attempts: 0
         };
 
+        // Handle role-based logic
         if (role === "company") {
             otpData.companyName = companyName || null;
             otpData.companyBio = companyBio || null;
             otpData.employees = employees || null;
-            otpData.logo = logo[0] ? logo[0].path : null;
+            otpData.logo = logo ? logo[0].path : null;
         } else if (role === "freelancer") {
             otpData.skills = skills || [];
             otpData.experienceYears = experienceYears || null;
@@ -47,12 +47,7 @@ const register = async (req, res) => {
             otpData.portfolio = portfolio || null;
             otpData.freelancerName = freelancerName || null;
 
-            if (req.files && req.files.profileImage) {
-                otpData.profileImage = req.files.profileImage[0] ? req.files.profileImage[0].path : null;
-            } else {
-                console.log('No profile image uploaded');
-                otpData.profileImage = null;
-            }
+            otpData.profileImage = profileImage || null;
         } else {
             return res.status(400).json({ message: "Invalid role" });
         }
@@ -73,7 +68,8 @@ const register = async (req, res) => {
             from: process.env.EMAIL_ADDRESS,
             to: email,
             subject: "Your OTP for Registration",
-            html: `
+            html:
+                `
             <div style="font-family: Arial, Helvetica, sans-serif; padding: 20px; color: #333;">
                 <div style="max-width: 600px; margin: 0 auto; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; background-color: #fff;">
                     <!-- Header with Logo -->
@@ -115,8 +111,8 @@ const register = async (req, res) => {
                 </div>
             </div>
             `
-        });
 
+        });
 
         res.status(200).json({ message: "OTP sent to your email" });
 
@@ -183,6 +179,7 @@ const verifyOtp = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
+
 
 const login = async (req, res) => {
     const { email, password } = req.body;

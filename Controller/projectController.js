@@ -7,15 +7,15 @@ const path = require("path");
 const getAllProjects = async (req, res) => {
     try {
         const projects = await Project.find()
-            .populate("company", "name logo")
+            .populate("company", "logo companyName")
             .exec();
 
         const updatedProjects = projects.map(project => {
-            const logoPath = path.join(__dirname, "..", "images", project.company.logo);
-            const logoBuffer = fs.readFileSync(logoPath);
-            const logoBase64 = logoBuffer.toString("base64");
-
-            project.company.logo = `data:image/png;base64,${logoBase64}`;
+            if (project.company && project.company.logo) {
+                project.company.logo = `http://localhost:3000/images/${project.company.logo}`;
+                project.company.companyName = project.company.companyName;
+            }
+            console.log(project);
             return project;
         });
 
@@ -27,6 +27,7 @@ const getAllProjects = async (req, res) => {
 };
 
 
+
 const getProjectById = async (req, res) => {
     const { id } = req.params;
     try {
@@ -34,12 +35,6 @@ const getProjectById = async (req, res) => {
         if (!project) {
             return res.status(404).json({ message: "Project not found" });
         }
-
-        const logoPath = path.join(__dirname, "..", "images", project.company.logo);
-        const logoBuffer = fs.readFileSync(logoPath);
-        const logoBase64 = logoBuffer.toString("base64");
-
-        project.company.logo = `data:image/png;base64,${logoBase64}`;
         res.status(200).json(project);
     } catch (error) {
         console.error("Error fetching project:", error);
@@ -75,6 +70,30 @@ const createProject = async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 };
+
+const getProjectsByCompany = async (req, res) => {
+    try {
+        const { companyId } = req.params;
+
+        if (!companyId) {
+            return res.status(400).json({ message: "Company ID is required" });
+        }
+
+        const projects = await Project.find({ company: companyId })
+            .populate("category", "name") // Populate category names instead of ObjectIds
+            .populate("company", "logo"); // Populate company logo if needed
+
+        if (!projects || projects.length === 0) {
+            return res.status(404).json({ message: "No projects found for this company" });
+        }
+
+        res.status(200).json(projects);
+    } catch (error) {
+        console.error("Error while fetching projects by company:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
 
 
 // Update an existing project
@@ -118,4 +137,5 @@ module.exports = {
     createProject,
     updateProject,
     deleteProject,
+    getProjectsByCompany
 };

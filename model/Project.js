@@ -10,10 +10,11 @@ const projectSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    category: {
-        type: String,
+    category: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Skill",
         required: true,
-    },
+    }],
     requirements: {
         type: String,
         required: true,
@@ -38,6 +39,6 @@ const projectSchema = new mongoose.Schema({
     },
 }, { timestamps: true });
 
-const Project = mongoose.model("Project", projectSchema);;
+const Project = mongoose.model("Project", projectSchema);
 
 module.exports = Project;

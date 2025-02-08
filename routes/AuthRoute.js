@@ -31,5 +31,6 @@ router.post('/upload', upload.single('image'), (req, res) => {
 router.post('/register', register);
 router.post('/login', login);
 router.post('/verify-otp', verifyOtp);
+router.post('/get-user-profile', getUserProfile);
 
 module.exports = router;

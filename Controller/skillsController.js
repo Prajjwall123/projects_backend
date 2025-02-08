@@ -23,6 +23,7 @@ const createSkill = async (req, res) => {
 };
 
 const getAllSkills = async (req, res) => {
+    console.log("skills api hit");
     try {
         const skills = await Skill.find().sort({ name: 1 });
         res.status(200).json(skills);

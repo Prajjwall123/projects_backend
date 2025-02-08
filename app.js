@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 const connectDb = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 const freelancerRoutes = require("./routes/freelancerRoutes");
@@ -18,6 +19,7 @@ const corsOptions = {
     origin: "http://localhost:5173",
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
 };
 
 app.use(cors(corsOptions));
@@ -26,11 +28,12 @@ app.use(express.json());
 
 app.use("/api/users", userRoutes);
 app.use("/api/freelancers", freelancerRoutes);
-app.use("/api/companys", companyRoutes);
+app.use("/api/companies", companyRoutes);
 app.use("/api/projects", projectsRoutes);
 app.use("/api/auth", AuthRouter);
 app.use("/api/skills", SkillsRouter);
 
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

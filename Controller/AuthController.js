@@ -12,7 +12,7 @@ const Company = require('../model/Company');
 require('dotenv').config();
 
 const register = async (req, res) => {
-    const { email, password, role, companyName, companyBio, employees, skills, experienceYears, availability, portfolio, freelancerName, profileImage } = req.body;
+    const { email, password, role, companyName, companyBio, employees, skills, experienceYears, availability, portfolio, freelancerName, profileImage, logo } = req.body;
 
     console.log('Registration data:', req.body);
 
@@ -39,7 +39,7 @@ const register = async (req, res) => {
             otpData.companyName = companyName || null;
             otpData.companyBio = companyBio || null;
             otpData.employees = employees || null;
-            otpData.logo = logo ? logo[0].path : null;
+            otpData.logo = logo || null;
         } else if (role === "freelancer") {
             otpData.skills = skills || [];
             otpData.experienceYears = experienceYears || null;
@@ -208,9 +208,50 @@ const login = async (req, res) => {
     }
 };
 
+const getUserProfile = async (req, res) => {
+    const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
+
+    if (!token) {
+        return res.status(400).json({ message: "No token provided" });
+    }
+
+    try {
+        const decoded = jwt.verify(token, '7c047a7d3dec647e73ef908c29f38e591ab2c0877b6933eb17f2e3fb0fe8af34');
+        const userId = decoded.id;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        let profile;
+        if (user.role === "company") {
+            profile = await Company.findOne({ user: user._id });
+        } else if (user.role === "freelancer") {
+            profile = await Freelancer.findOne({ user: user._id });
+        } else {
+            return res.status(400).json({ message: "Invalid role" });
+        }
+
+        if (!profile) {
+            return res.status(404).json({ message: `No ${user.role} profile found` });
+        }
+
+        res.status(200).json({
+            email: user.email,
+            role: user.role,
+            profile: profile
+        });
+    } catch (error) {
+        console.error("Error fetching user profile:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
 module.exports = {
     register,
     login,
     verifyOtp,
+    getUserProfile
 };
 

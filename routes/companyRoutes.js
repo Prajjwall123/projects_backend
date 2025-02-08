@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { authenticateToken, authorizeRole } = require("../security/Auth")
 
-const { getAllCompanies, createCompany, getCompanyById, updateCompany, deleteCompany } = require("../controller/companyController");
+const { getAllCompanies, getCompanyById, updateCompany, deleteCompany } = require("../controller/companyController");
 
 const multer = require("multer")
 const storage = multer.diskStorage({

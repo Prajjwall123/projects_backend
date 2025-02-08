@@ -2,6 +2,7 @@ const Project = require("../model/Project");
 
 const fs = require("fs");
 const path = require("path");
+const Company = require("../model/Company");
 
 // Get all projects
 const getAllProjects = async (req, res) => {
@@ -12,10 +13,10 @@ const getAllProjects = async (req, res) => {
 
         const updatedProjects = projects.map(project => {
             if (project.company && project.company.logo) {
-                project.company.logo = `http://localhost:3000/images/${project.company.logo}`;
+                project.company.logo = `${project.company.logo}`;
                 project.company.companyName = project.company.companyName;
             }
-            console.log(project);
+            // console.log(project);
             return project;
         });
 
@@ -64,24 +65,39 @@ const createProject = async (req, res) => {
 
         await project.save();
         console.log("Project Created:", project);
+
+        // Increment the projectsPosted field in the company document
+        const updatedCompany = await Company.findByIdAndUpdate(
+            company,
+            { $inc: { projectsPosted: 1 } },
+            { new: true }
+        );
+
+        if (!updatedCompany) {
+            return res.status(404).json({ message: "Company not found" });
+        }
+
+        console.log("Company Updated:", updatedCompany);
         res.status(201).json(project);
     } catch (error) {
         console.error("Error while creating project:", error);
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ message: "Internal Server Error" });
     }
 };
 
+
+
 const getProjectsByCompany = async (req, res) => {
     try {
-        const { companyId } = req.params;
+        const { id: companyId } = req.params;
 
         if (!companyId) {
             return res.status(400).json({ message: "Company ID is required" });
         }
 
         const projects = await Project.find({ company: companyId })
-            .populate("category", "name") // Populate category names instead of ObjectIds
-            .populate("company", "logo"); // Populate company logo if needed
+            .populate("category")
+            .populate("company", "companyName logo");
 
         if (!projects || projects.length === 0) {
             return res.status(404).json({ message: "No projects found for this company" });
@@ -93,7 +109,6 @@ const getProjectsByCompany = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
-
 
 
 // Update an existing project
@@ -123,13 +138,27 @@ const deleteProject = async (req, res) => {
         if (!project) {
             return res.status(404).json({ message: "Project not found" });
         }
+
+        const updatedCompany = await Company.findByIdAndUpdate(
+            project.company,
+            { $inc: { projectsPosted: -1 } },
+            { new: true }
+        );
+
+        if (!updatedCompany) {
+            console.warn("Company not found while updating projectsPosted");
+        } else {
+            console.log("Company Updated:", updatedCompany);
+        }
+
         console.log("Project Deleted:", project);
         res.status(200).json({ message: "Project deleted successfully" });
     } catch (error) {
         console.error("Error while deleting project:", error);
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
 
 module.exports = {
     getAllProjects,

@@ -6,7 +6,7 @@ const { getAllProjects, getProjectById, createProject, updateProject, deleteProj
 
 router.get("/", getAllProjects);
 router.get("/:id", getProjectById);
-router.get("company/:id", getProjectsByCompany);
+router.get("/getByCompany/:id", getProjectsByCompany);
 router.post("/", authenticateToken, authorizeRole("company"), createProject);
 router.put("/:id", authenticateToken, authorizeRole("company"), updateProject);
 router.delete("/:id", authenticateToken, authorizeRole("company"), deleteProject);

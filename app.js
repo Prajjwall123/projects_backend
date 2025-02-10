@@ -8,6 +8,7 @@ const companyRoutes = require('../backend/routes/companyRoutes');
 const projectsRoutes = require('../backend/routes/projectRoutes');
 const AuthRouter = require('../backend/routes/AuthRoute');
 const SkillsRouter = require('../backend/routes/skillsRoutes');
+const BiddingRouter = require('../backend/routes/biddingRoutes');
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use("/api/companies", companyRoutes);
 app.use("/api/projects", projectsRoutes);
 app.use("/api/auth", AuthRouter);
 app.use("/api/skills", SkillsRouter);
+app.use("/api/biddings", BiddingRouter);
 
 app.use('/images', express.static(path.join(__dirname, 'images')));
 

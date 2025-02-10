@@ -4,7 +4,7 @@ const companySchema = new mongoose.Schema(
     {
         user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, unique: true },
         companyName: { type: String, maxlength: 255 },
-        companyBio: { type: String, maxlength: 255 },
+        companyBio: { type: String },
         employees: { type: Number },
         logo: { type: String, maxlength: 255 },
         projectsPosted: { type: Number, default: 0 },

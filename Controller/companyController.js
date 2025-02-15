@@ -11,6 +11,7 @@ const getAllCompanies = async (req, res) => {
 };
 
 const getCompanyById = async (req, res) => {
+    console.log("api hit");
     const { id } = req.params;
     try {
         const company = await Company.findById(id).populate("user", "name email role");

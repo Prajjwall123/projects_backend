@@ -5,6 +5,16 @@ const createBidding = async (req, res) => {
     try {
         const { freelancer, project, amount, message } = req.body;
 
+        const existingBid = await Bidding.findOne({ freelancer, project });
+
+        if (existingBid) {
+            return res.status(400).json({
+                success: false,
+                message: "You have already placed a bid for this project.",
+            });
+        }
+
+        // Create a new bid
         const newBid = new Bidding({
             freelancer,
             project,
@@ -91,4 +101,17 @@ const getBiddingsByProject = async (req, res) => {
     }
 };
 
-module.exports = { createBidding, updateBidding, deleteBidding, getAllBiddings, getBiddingsByProject };
+const getBiddingCountByProject = async (req, res) => {
+    try {
+        const { projectId } = req.params;
+
+        const bidCount = await Bidding.countDocuments({ project: projectId });
+
+        res.status(200).json({ success: true, count: bidCount });
+    } catch (error) {
+        console.error("Error fetching bidding count by project:", error);
+        res.status(500).json({ success: false, message: "Failed to fetch bidding count" });
+    }
+};
+
+module.exports = { createBidding, updateBidding, deleteBidding, getAllBiddings, getBiddingsByProject, getBiddingCountByProject };

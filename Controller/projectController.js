@@ -4,23 +4,28 @@ const fs = require("fs");
 const path = require("path");
 const Company = require("../model/Company");
 
-// Get all projects
 const getAllProjects = async (req, res) => {
     try {
         const projects = await Project.find()
-            .populate("company", "logo companyName")
+            .populate("company", "companyName logo")
+            .populate("category", "name")
             .exec();
 
-        const updatedProjects = projects.map(project => {
-            if (project.company && project.company.logo) {
-                project.company.logo = `${project.company.logo}`;
-                project.company.companyName = project.company.companyName;
-            }
-            // console.log(project);
-            return project;
-        });
+        const response = projects.map(project => ({
+            projectId: project._id,
+            title: project.title,
+            companyId: project.company?._id || null,
+            companyName: project.company?.companyName || null,
+            companyLogo: project.company?.logo || null,
+            category: project.category.map(skill => skill ? skill.name : null),
+            requirements: project.requirements,
+            description: project.description,
+            duration: project.duration,
+            postedDate: project.postedDate,
+            status: project.status,
+        }));
 
-        res.status(200).json(updatedProjects);
+        res.status(200).json(response);
     } catch (error) {
         console.error("Error fetching projects:", error);
         res.status(500).json({ message: error.message });
@@ -28,21 +33,37 @@ const getAllProjects = async (req, res) => {
 };
 
 
-
 const getProjectById = async (req, res) => {
     const { id } = req.params;
     try {
-        const project = await Project.findById(id).populate("company", "name logo");
+        const project = await Project.findById(id)
+            .populate("company", "companyName logo")
+            .populate("category", "name");
+
         if (!project) {
             return res.status(404).json({ message: "Project not found" });
         }
-        res.status(200).json(project);
+
+        const response = {
+            projectId: project._id,
+            title: project.title,
+            companyId: project.company._id,
+            companyName: project.company.companyName,
+            companyLogo: project.company.logo,
+            category: project.category.map(skill => skill.name),
+            requirements: String(project.requirements),
+            description: project.description,
+            duration: project.duration,
+            postedDate: project.postedDate,
+            status: project.status,
+        };
+
+        res.status(200).json(response);
     } catch (error) {
         console.error("Error fetching project:", error);
         res.status(500).json({ message: error.message });
     }
 };
-
 
 
 const createProject = async (req, res) => {

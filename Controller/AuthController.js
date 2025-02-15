@@ -209,6 +209,7 @@ const login = async (req, res) => {
 };
 
 const getUserProfile = async (req, res) => {
+    console.log("get user profile hit")
     const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
 
     if (!token) {
@@ -234,6 +235,7 @@ const getUserProfile = async (req, res) => {
         }
 
         if (!profile) {
+            console.log("No profile found", user.role);
             return res.status(404).json({ message: `No ${user.role} profile found` });
         }
 

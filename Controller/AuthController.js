@@ -182,17 +182,28 @@ const verifyOtp = async (req, res) => {
 
 
 const login = async (req, res) => {
+    console.log("login api hit");
     const { email, password } = req.body;
     console.log(req.body);
+
     try {
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(403).send('Invalid email or password');
+            return res.status(403).json({ message: 'Invalid email or password' });
         }
 
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
         if (!isPasswordCorrect) {
-            return res.status(403).send('Invalid email or password');
+            return res.status(403).json({ message: 'Invalid email or password' });
+        }
+
+        let userId = user._id;
+
+        if (user.role === "freelancer") {
+            const freelancer = await Freelancer.findOne({ user: user._id });
+            if (freelancer) {
+                userId = freelancer._id;
+            }
         }
 
         const token = jwt.sign(
@@ -201,15 +212,22 @@ const login = async (req, res) => {
             { expiresIn: '1h' }
         );
 
-        res.json({ token });
+        res.json({
+            token,
+            userId,
+            role: user.role,
+        });
     } catch (error) {
         console.error('Error logging in user:', error);
-        res.status(500).send('Internal server error');
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
+
+
+
 const getUserProfile = async (req, res) => {
-    console.log("get user profile hit")
+    // console.log("get user profile hit");
     const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
 
     if (!token) {
@@ -229,7 +247,7 @@ const getUserProfile = async (req, res) => {
         if (user.role === "company") {
             profile = await Company.findOne({ user: user._id });
         } else if (user.role === "freelancer") {
-            profile = await Freelancer.findOne({ user: user._id });
+            profile = await Freelancer.findOne({ user: user._id }, 'createdAt');
         } else {
             return res.status(400).json({ message: "Invalid role" });
         }
@@ -239,16 +257,22 @@ const getUserProfile = async (req, res) => {
             return res.status(404).json({ message: `No ${user.role} profile found` });
         }
 
-        res.status(200).json({
+        const response = {
             email: user.email,
             role: user.role,
-            profile: profile
-        });
+            profile: {
+                ...profile.toObject(),
+                createdAt: user.role === "freelancer" ? profile.createdAt : undefined,
+            }
+        };
+        // console.log(JSON.stringify(response, null, 2));
+        res.status(200).json(response);
     } catch (error) {
         console.error("Error fetching user profile:", error);
         res.status(500).json({ message: "Internal server error" });
     }
-}
+};
+
 
 module.exports = {
     register,

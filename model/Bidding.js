@@ -22,6 +22,11 @@ const biddingSchema = new mongoose.Schema(
             maxlength: 1000,
             required: true,
         },
+        fileName: {
+            type: String,
+            maxlength: 1000,
+            required: true,
+        }
     },
     { timestamps: true }
 );

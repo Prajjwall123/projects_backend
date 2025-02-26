@@ -35,8 +35,23 @@ const projectSchema = new mongoose.Schema({
     status: {
         type: String,
         required: true,
-        enum: ["posted", "awarded", "completed"],
+        default: "posted",
     },
+    awardedTo: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Freelancer",
+        default: null,
+    },
+    feedbackRequestedMessage: {
+        type: String,
+    },
+    link: {
+        type: String,
+    },
+    feedbackRespondMessage: {
+        type: String,
+    }
+
 }, { timestamps: true });
 
 const Project = mongoose.model("Project", projectSchema);

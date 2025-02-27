@@ -9,12 +9,11 @@ const projectsRoutes = require("./routes/projectRoutes");
 const AuthRouter = require("./routes/AuthRoute");
 const SkillsRouter = require("./routes/skillsRoutes");
 const BiddingRouter = require("./routes/biddingRoutes");
-const paymentRoutes = require("./routes/paymentRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 
 
 const app = express();
-require("dotenv").config();
+require('dotenv').config();
 
 connectDb();
 
@@ -35,7 +34,6 @@ app.use("/api/projects", projectsRoutes);
 app.use("/api/auth", AuthRouter);
 app.use("/api/skills", SkillsRouter);
 app.use("/api/biddings", BiddingRouter);
-app.use("/api/payments", paymentRoutes);
 app.use("/api/notifications", notificationRoutes);
 
 
@@ -46,3 +44,5 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Server Running at http://localhost:${port}`);
 });
+
+module.exports = app;

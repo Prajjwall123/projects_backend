@@ -79,4 +79,28 @@ describe("Project API Test Collection", function () {
             });
     });
 
+    it("should get a project by ID", function (done) {
+        const projectId = "67c0252d4f6c641c47efc83d";
+
+        request(server)
+            .get(`/api/projects/${projectId}`)
+            .expect("Content-Type", /json/)
+            .expect(200)
+            .end((err, res) => {
+                if (err) return done(err);
+
+                expect(res.body).to.be.an("object");
+
+                expect(res.body).to.have.property("projectId").that.equals(projectId);
+                expect(res.body).to.have.property("title").that.is.a("string");
+                expect(res.body).to.have.property("companyId").that.is.a("string");
+                expect(res.body).to.have.property("companyName").that.is.a("string");
+                expect(res.body).to.have.property("companyLogo").that.is.a("string");
+                expect(res.body).to.have.property("bidCount").that.is.a("number");
+
+                done();
+            });
+    });
+
+
 });

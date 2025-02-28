@@ -42,6 +42,52 @@ const getAllProjects = async (req, res) => {
     }
 };
 
+const getFilteredProjects = async (req, res) => {
+    try {
+        const { categoryId } = req.params;
+
+        if (!categoryId) {
+            return res.status(400).json({ message: "Category ID is required" });
+        }
+
+        const projects = await Project.find({ status: "posted" })
+            .populate("company", "companyName logo headquarters")
+            .populate("category", "name")
+            .exec();
+
+        const filteredProjects = projects.filter((project) =>
+            project.category.some((cat) => cat._id.toString() === categoryId)
+        );
+
+        const response = await Promise.all(
+            filteredProjects.map(async (project) => {
+                const bidCount = await Bidding.countDocuments({ project: project._id });
+
+                return {
+                    projectId: project._id,
+                    title: project.title,
+                    companyId: project.company?._id || null,
+                    companyName: project.company?.companyName || null,
+                    companyLogo: project.company?.logo || null,
+                    headquarters: project.company?.headquarters || null,
+                    category: project.category.map((skill) => (skill ? skill.name : null)),
+                    requirements: project.requirements,
+                    description: project.description,
+                    duration: project.duration,
+                    postedDate: project.postedDate,
+                    status: project.status,
+                    bidCount: bidCount,
+                };
+            })
+        );
+
+        res.status(200).json(response);
+    } catch (error) {
+        console.error("Error fetching filtered projects:", error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
 
 const getProjectById = async (req, res) => {
     const { id } = req.params;
@@ -83,6 +129,8 @@ const getProjectById = async (req, res) => {
 const createProject = async (req, res) => {
     try {
         const { title, category, requirements, description, status, company, duration } = req.body;
+
+        console.log(req.body);
 
         if (!company) {
             return res.status(400).json({ message: "Company ID is required" });
@@ -244,13 +292,11 @@ const getProjectsByFreelancerId = async (req, res) => {
             return res.status(400).json({ message: "Freelancer ID is required" });
         }
 
-        // Fetch projects where freelancer was awarded
         const projects = await Project.find({ status: { $ne: "posted" }, awardedTo: freelancerId })
             .populate("company", "companyName logo headquarters")
             .populate("category", "name")
             .exec();
 
-        // Process project data
         const response = await Promise.all(
             projects.map(async (project) => {
                 const bidCount = await Bidding.countDocuments({ project: project._id });
@@ -291,5 +337,6 @@ module.exports = {
     updateProject,
     deleteProject,
     getProjectsByCompany,
-    getProjectsByFreelancerId
+    getProjectsByFreelancerId,
+    getFilteredProjects
 };

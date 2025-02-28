@@ -8,7 +8,7 @@ const otpSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
     attempts: { type: Number, default: 0 },
     companyName: { type: String, maxlength: 255 },
-    companyBio: { type: String, maxlength: 255 },
+    companyBio: { type: String },
     employees: { type: Number },
     logo: { type: String },
     projectsPosted: { type: Number, default: 0 },

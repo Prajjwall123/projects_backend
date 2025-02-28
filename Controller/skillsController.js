@@ -81,8 +81,7 @@ const deleteSkill = async (req, res) => {
             return res.status(404).json({ message: "Skill not found" });
         }
 
-        // Delete the skill
-        await skill.remove();
+        await Skill.deleteOne({ _id: skillId });
 
         res.status(200).json({ message: "Skill deleted successfully" });
     } catch (error) {

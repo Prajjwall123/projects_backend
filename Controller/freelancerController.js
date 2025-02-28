@@ -1,5 +1,6 @@
-const Freelancer = require("../model/Freelancer");
-const User = require("../model/User");
+import Freelancer from "../model/Freelancer.js";
+import User from "../model/User.js";
+
 
 const getAllFreelancers = async (req, res) => {
     try {
@@ -14,41 +15,133 @@ const getAllFreelancers = async (req, res) => {
 const getFreelancerById = async (req, res) => {
     const { id } = req.params;
     try {
-        const freelancer = await Freelancer.findById(id).populate("user", "name email role");
+        // Fetch freelancer by ID and populate skills
+        const freelancer = await Freelancer.findById(id)
+            .populate("user")
+            .populate("skills"); // Populate skills field with Skill entity
+
         if (!freelancer) {
             return res.status(404).json({ message: "Freelancer not found" });
         }
-        res.status(200).json(freelancer);
+
+        // Formatting response to include the full skill entities instead of just IDs
+        const formattedResponse = {
+            ...freelancer.toObject(),
+            userId: freelancer.user?._id || null,
+            skills: freelancer.skills.map(skill => ({
+                _id: skill._id,
+                name: skill.name,
+                // add any other skill fields if needed
+            })),
+        };
+
+        // Remove user field from the response
+        delete formattedResponse.user;
+
+        // Send response with populated skills
+        res.status(200).json(formattedResponse);
     } catch (error) {
         console.error("Error fetching freelancer:", error);
         res.status(500).json({ message: error.message });
     }
 };
 
-const updateFreelancer = async (req, res) => {
-    const { id } = req.params;
-    const { skills, experienceYears, profileImage, availability, profileImagePath } = req.body;
+const getFreelancerByUserId = async (req, res) => {
+    const { userId } = req.params; // Get userId from the request parameters
     try {
-        const freelancer = await Freelancer.findById(id);
+        // Fetch freelancer by userId and populate skills
+        const freelancer = await Freelancer.findOne({ user: userId }) // Find freelancer by the userId reference
+            .populate("user")
+            .populate("skills"); // Populate skills field with Skill entity
+
         if (!freelancer) {
             return res.status(404).json({ message: "Freelancer not found" });
         }
 
-        freelancer.skills = skills || freelancer.skills;
-        freelancer.experienceYears = experienceYears || freelancer.experienceYears;
-        freelancer.profileImage = profileImage || freelancer.profileImage;
-        freelancer.availability = availability || freelancer.availability;
-        freelancer.profileImagePath = profileImagePath || freelancer.profileImagePath;
+        // Formatting response to include the full skill entities instead of just IDs
+        const formattedResponse = {
+            ...freelancer.toObject(),
+            userId: freelancer.user?._id || null,
+            skills: freelancer.skills.map(skill => ({
+                _id: skill._id,
+                name: skill.name,
+                // add any other skill fields if needed
+            })),
+        };
 
-        await freelancer.save();
-        console.log("Freelancer Updated:", freelancer);
+        // Remove user field from the response
+        delete formattedResponse.user;
 
-        res.status(200).json(freelancer);
+        // Send response with populated skills
+        res.status(200).json(formattedResponse);
     } catch (error) {
-        console.error("Error updating freelancer:", error);
-        res.status(400).json({ message: error.message });
+        console.error("Error fetching freelancer by userId:", error);
+        res.status(500).json({ message: error.message });
     }
 };
+
+const updateFreelancer = async (req, res) => {
+    console.log("update freelancer hit");
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({ message: "Freelancer ID is required" });
+        }
+
+        const {
+            freelancerName,
+            profession,
+            location,
+            aboutMe,
+            workAt,
+            availability,
+            experienceYears,
+            portfolio,
+            profileImage,
+            projectsCompleted,
+            skills,
+            languages,
+            experience,
+            certifications
+        } = req.body;
+
+        const updatedFreelancer = await Freelancer.findByIdAndUpdate(
+            id,
+            {
+                $set: {
+                    ...(freelancerName && { freelancerName }),
+                    ...(profession && { profession }),
+                    ...(location && { location }),
+                    ...(aboutMe && { aboutMe }),
+                    ...(workAt && { workAt }),
+                    ...(availability && { availability }),
+                    ...(experienceYears !== undefined && { experienceYears }),
+                    ...(portfolio && { portfolio }),
+                    ...(profileImage && { profileImage }),
+                    ...(projectsCompleted !== undefined && { projectsCompleted }),
+                    ...(skills && { skills }),
+                    ...(languages && { languages }),
+                    ...(experience && { experience }),
+                    ...(certifications && { certifications }),
+                },
+            },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedFreelancer) {
+            return res.status(404).json({ message: "Freelancer not found" });
+        }
+
+        console.log("Freelancer Updated:", updatedFreelancer);
+        res.status(200).json(updatedFreelancer);
+    } catch (error) {
+        console.error("Error updating freelancer:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+};
+
+export default updateFreelancer;
+
 
 const deleteFreelancer = async (req, res) => {
     const { id } = req.params;
@@ -68,9 +161,5 @@ const deleteFreelancer = async (req, res) => {
     }
 };
 
-module.exports = {
-    getAllFreelancers,
-    getFreelancerById,
-    updateFreelancer,
-    deleteFreelancer
-};
+export { getAllFreelancers, getFreelancerById, updateFreelancer, deleteFreelancer, getFreelancerByUserId };
+

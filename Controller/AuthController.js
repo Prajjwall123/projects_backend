@@ -227,7 +227,6 @@ const login = async (req, res) => {
 
 
 const getUserProfile = async (req, res) => {
-    // console.log("get user profile hit");
     const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
 
     if (!token) {
@@ -245,9 +244,9 @@ const getUserProfile = async (req, res) => {
 
         let profile;
         if (user.role === "company") {
-            profile = await Company.findOne({ user: user._id });
+            profile = await Company.findOne({ user: user._id }).select("logo user");
         } else if (user.role === "freelancer") {
-            profile = await Freelancer.findOne({ user: user._id }, 'createdAt');
+            profile = await Freelancer.findOne({ user: user._id }).select("profileImage createdAt");
         } else {
             return res.status(400).json({ message: "Invalid role" });
         }
@@ -263,15 +262,18 @@ const getUserProfile = async (req, res) => {
             profile: {
                 ...profile.toObject(),
                 createdAt: user.role === "freelancer" ? profile.createdAt : undefined,
+                profileImage: user.role === "freelancer" ? profile.profileImage : undefined,
+                logo: user.role === "company" ? profile.logo : undefined,
             }
         };
-        // console.log(JSON.stringify(response, null, 2));
+
         res.status(200).json(response);
     } catch (error) {
         console.error("Error fetching user profile:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 };
+
 
 
 module.exports = {

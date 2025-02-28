@@ -41,7 +41,7 @@ const getWalletBalanceByFreelancer = async (req, res) => {
         }
 
         // Find wallet using the user's ID
-        const wallet = await Wallet.findOne({ userId: freelancer.userId });
+        const wallet = await Wallet.findOne({ userId: freelancer.user });
 
         if (!wallet) {
             return res.status(404).json({ success: false, message: "Wallet not found" });
@@ -63,24 +63,31 @@ const getWalletBalanceByFreelancer = async (req, res) => {
     }
 };
 
-const transferMoney = async (req, res) => {
-    const { senderId, receiverId, amount } = req.body;
 
-    if (!senderId || !receiverId || !amount || amount <= 0) {
+const transferMoney = async (req, res) => {
+    console.log("transfer money api hit");
+    const { senderId, freelancerId, amount } = req.body;
+
+    if (!senderId || !freelancerId || !amount || amount <= 0) {
         return res.status(400).json({
             success: false,
-            message: "Invalid input. Sender ID, receiver ID, and a positive amount are required.",
+            message: "Invalid input. Sender ID, Freelancer ID, and a positive amount are required.",
         });
     }
 
     try {
         const senderWallet = await Wallet.findOne({ userId: senderId });
-        const receiverWallet = await Wallet.findOne({ userId: receiverId });
-
         if (!senderWallet) {
             return res.status(404).json({ success: false, message: "Sender wallet not found." });
         }
 
+        const freelancer = await Freelancer.findById(freelancerId);
+        if (!freelancer || !freelancer.user) {
+            return res.status(404).json({ success: false, message: "Freelancer not found or has no associated user." });
+        }
+        const receiverUserId = freelancer.user;
+
+        let receiverWallet = await Wallet.findOne({ userId: receiverUserId });
         if (!receiverWallet) {
             return res.status(404).json({ success: false, message: "Receiver wallet not found." });
         }
@@ -97,7 +104,7 @@ const transferMoney = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: `Successfully transferred NPR ${amount} from Sender to Receiver.`,
+            message: `Successfully transferred NPR ${amount} from Sender to Freelancer.`,
         });
 
     } catch (error) {

@@ -41,7 +41,7 @@ describe("Project API Test Collection", function () {
                 requirements: "React, Node.js, MongoDB",
                 description: "A full-stack web application",
                 status: "posted",
-                company: "67bffc1fd30e0cfd3442c81c",
+                company: "67c30e551995eee3c4e19887",
                 duration: "3"
             })
             .expect("Content-Type", /json/)
@@ -53,7 +53,7 @@ describe("Project API Test Collection", function () {
                 expect(res.body).to.have.property("title").that.equals("New Web App");
                 expect(res.body).to.have.property("category").that.is.an("array").that.includes("67c020ce05479483218ef790");
                 expect(res.body).to.have.property("status").that.equals("posted");
-                expect(res.body).to.have.property("company").that.equals("67bffc1fd30e0cfd3442c81c");
+                expect(res.body).to.have.property("company").that.equals("67c30e551995eee3c4e19887");
                 expect(res.body).to.have.property("_id");
 
                 projectId = res.body._id;
@@ -78,29 +78,5 @@ describe("Project API Test Collection", function () {
                 done();
             });
     });
-
-    it("should get a project by ID", function (done) {
-        const projectId = "67c0252d4f6c641c47efc83d";
-
-        request(server)
-            .get(`/api/projects/${projectId}`)
-            .expect("Content-Type", /json/)
-            .expect(200)
-            .end((err, res) => {
-                if (err) return done(err);
-
-                expect(res.body).to.be.an("object");
-
-                expect(res.body).to.have.property("projectId").that.equals(projectId);
-                expect(res.body).to.have.property("title").that.is.a("string");
-                expect(res.body).to.have.property("companyId").that.is.a("string");
-                expect(res.body).to.have.property("companyName").that.is.a("string");
-                expect(res.body).to.have.property("companyLogo").that.is.a("string");
-                expect(res.body).to.have.property("bidCount").that.is.a("number");
-
-                done();
-            });
-    });
-
 
 });

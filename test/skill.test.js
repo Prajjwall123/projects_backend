@@ -11,7 +11,7 @@ describe("Skill API", function () {
         request(server)
             .post("/api/skills")
             .set("Content-Type", "application/json")
-            .send({ name: "UI/UX" })
+            .send({ name: "Docker" })
             .expect("Content-Type", /json/)
             .expect(201)
             .end((err, res) => {
@@ -20,7 +20,7 @@ describe("Skill API", function () {
                 expect(res.body).to.be.an("object");
                 expect(res.body).to.have.property("message").that.equals("Skill created successfully");
                 expect(res.body).to.have.property("skill").that.is.an("object");
-                expect(res.body.skill).to.have.property("name").that.equals("UI/UX");
+                expect(res.body.skill).to.have.property("name").that.equals("Docker");
                 expect(res.body.skill).to.have.property("_id").that.is.a("string");
 
                 skillId = res.body.skill._id;
@@ -52,7 +52,7 @@ describe("Skill API", function () {
 
                 expect(res.body).to.be.an("object");
                 expect(res.body).to.have.property("_id").that.equals(skillId);
-                expect(res.body).to.have.property("name").that.equals("UI/UX");
+                expect(res.body).to.have.property("name").that.equals("Docker");
                 done();
             });
     });
@@ -61,7 +61,7 @@ describe("Skill API", function () {
         request(server)
             .put(`/api/skills/${skillId}`)
             .set("Content-Type", "application/json")
-            .send({ name: " UI/UX" })
+            .send({ name: " Docker" })
             .expect("Content-Type", /json/)
             .expect(200)
             .end((err, res) => {

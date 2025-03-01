@@ -5,7 +5,7 @@ const server = require('../app.js');
 
 describe("Freelancer API", function () {
     it("should get a freelancer by ID", function (done) {
-        const freelancerId = "67bffd43cdb00b3127d093a3";
+        const freelancerId = "67c30de8f9ab5cdaa2f414ec";
 
         request(server)
             .get(`/api/freelancers/${freelancerId}`)

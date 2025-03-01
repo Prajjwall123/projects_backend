@@ -3,6 +3,7 @@ const { expect } = chai;
 const request = require('supertest');
 const server = require('../app.js');
 const path = require('path');
+const OTPModel = require('../model/OTP.js');
 
 describe('/Auth API Tests', function () {
 
@@ -19,12 +20,11 @@ describe('/Auth API Tests', function () {
             });
     });
 
-
     it('should register a new company successfully and send OTP', function (done) {
         request(server)
             .post('/api/auth/register')
             .send({
-                email: "sir.pokhrel@gmail.com",
+                email: "testmaybelene@gmail.com",
                 password: "password",
                 role: "company",
                 companyName: "test company",
@@ -44,15 +44,15 @@ describe('/Auth API Tests', function () {
         request(server)
             .post('/api/auth/register')
             .send({
-                email: "pokhrelprajwal29@gmail.com",
+                email: "newfreelancer@gmail.com",
                 password: "password",
                 role: "freelancer",
                 skills: ["679b4fe07dbeac15d47c7ce1", "679b4fe07dbeac15d47c7ce1"],
                 experienceYears: 5,
                 availability: "Full-time",
-                portfolio: "A skilled MERN stack developer with 3 years of experience in building dynamic and scalable web applications. Specializing in MongoDB, Express.js, React, and Node.js, I have successfully developed and deployed multiple projects, ensuring high performance, security, and user-friendly interfaces. Passionate about problem-solving, API integration, and full-stack development, I thrive on creating efficient and modern web solutions. Whether you need a responsive website, a custom web app, or backend services, I am here to bring your ideas to life with clean and maintainable code. Let's collaborate!",
+                portfolio: "A skilled MERN stack developer...",
                 freelancerName: "Test User",
-                profileImage: "images/1738233976272-ss.png"
+                profileImage: "images/1740118653468-photo.jpeg"
             })
             .expect(200)
             .end((err, res) => {
@@ -63,18 +63,23 @@ describe('/Auth API Tests', function () {
     });
 
     it('should verify OTP successfully', function (done) {
-        request(server)
-            .post('/api/auth/verify-otp')
-            .send({
-                email: "pokhrelprajwal29@gmail.com",
-                otp: "834085"
+        OTPModel.findOne({ email: "newfreelancer@gmail.com" })
+            .then(otpRecord => {
+                if (!otpRecord) return done(new Error("OTP not found for the given email"));
+                request(server)
+                    .post('/api/auth/verify-otp')
+                    .send({
+                        email: "newfreelancer@gmail.com",
+                        otp: otpRecord.otp
+                    })
+                    .expect(201)
+                    .end((err, res) => {
+                        if (err) return done(err);
+                        expect(res.body).to.have.property("message").that.equals("Registration successful");
+                        done();
+                    });
             })
-            .expect(201)
-            .end((err, res) => {
-                if (err) return done(err);
-                expect(res.body).to.have.property("message").that.equals("OTP verified successfully");
-                done();
-            });
+            .catch(err => done(err));
     });
 
     it("should login successfully and return a token", function (done) {
